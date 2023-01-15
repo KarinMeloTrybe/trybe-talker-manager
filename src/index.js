@@ -32,7 +32,7 @@ return response.status(HTTP_OK_STATUS).json(talkerId);
 
 app.post('/login', (request, response) => {
   const { email, password } = request.body;
-  const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  const regex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 if (!email) {
   return response.status(400).json({ message: 'O campo "email" é obrigatório' });
 }
@@ -48,6 +48,12 @@ if (password.length < 6) {
   .json({ message: 'O "password" deve ter pelo menos 6 caracteres' });
  }
  return response.status(200).json({ token: createToken() });
+});
+
+app.post('/talker', (req, response) => {
+  const person = { ...req.body };
+
+  response.status(201).json({ person });
 });
 
 app.listen(PORT, () => {
