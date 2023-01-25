@@ -1,9 +1,14 @@
 const express = require('express');
+const path = require('path');
+const { writeFile, readFile } = require('fs').promises;
 const { getData } = require('./helpers/talker');
 const createToken = require('./helpers/Utils');
+const { validationName, validationAge, validationTalk } = require('./helpers/middlewares');
 
 const app = express();
 app.use(express.json());
+
+const personsPath = path.resolve(__dirname, './persons.json');
 
 const HTTP_OK_STATUS = 200;
 const HTTP_NOT_FIND_STATUS = 404;
@@ -50,10 +55,25 @@ if (password.length < 6) {
  return response.status(200).json({ token: createToken() });
 });
 
-app.post('/talker', (req, response) => {
-  const person = { ...req.body };
-
-  response.status(201).json({ person });
+app.post('/talker', async (request, response) => {
+  try {
+    const persons = await readFile();
+    const { name, age, talk } = { ...request.body };
+    const { watchedAt, rate } = talk;
+    const newPerson = { 
+      token,
+      name,
+      age,
+      talk: {
+        watchedAt,
+        rate,
+      },
+    };
+    const talkers = JSON.stringify([...persons, newPerson]);
+    await writeFile(personsPath, talkers);
+    } catch (err) {
+    response.status(201).json(newPerson);
+  }
 });
 
 app.listen(PORT, () => {
