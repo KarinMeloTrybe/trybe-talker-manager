@@ -22,10 +22,10 @@ app.get('/', (_request, response) => {
 
 app.get('/talker/search?q=searchTerm', validationToken, async (request, response) => {
   try {
-    const { searchTerm } = request.params;
+    // const { searchTerm } = request.params;
     const { id } = request.params;
-    const promise = await readFile(personsPath.searchTerm); // ou includes? ou personsPath === personsPath.params ?
-    const persons = JSON.parse(promise);
+    // const promise = await readFile(personsPath.searchTerm); // ou includes? ou personsPath === personsPath.params ?
+    // const persons = JSON.parse(promise);
     const { name, age, talk } = { ...request.body };
     const { watchedAt, rate } = talk;
     const searchedPerson = { 
@@ -38,7 +38,7 @@ app.get('/talker/search?q=searchTerm', validationToken, async (request, response
       },
     };
     return response.status(200).json(searchedPerson);
-   } catch (err) { response.status(200).json({ talker }); }
+   } catch (err) { response.status(200).json(); }
  });
 
 app.get('/talker', async (_request, response) => {
