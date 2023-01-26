@@ -3,12 +3,13 @@ const path = require('path');
 const { writeFile, readFile } = require('fs').promises;
 const { getData } = require('./helpers/talker');
 const createToken = require('./helpers/Utils');
-const { validationName, validationAge, validationTalk } = require('./helpers/middlewares');
+const { validationName, validationAge, validationTalk,
+ validationWatchedAt, validationRate, validationToken } = require('./helpers/middlewares');
 
 const app = express();
 app.use(express.json());
 
-const personsPath = path.resolve(__dirname, './persons.json');
+const personsPath = path.resolve(__dirname, 'talker.json');
 
 const HTTP_OK_STATUS = 200;
 const HTTP_NOT_FIND_STATUS = 404;
@@ -55,13 +56,16 @@ if (password.length < 6) {
  return response.status(200).json({ token: createToken() });
 });
 
-app.post('/talker', async (request, response) => {
+app.post('/talker',
+validationToken, validationName, validationAge, validationTalk, validationWatchedAt, validationRate,
+async (request, response) => {
   try {
-    const persons = await readFile();
+    const promise = await readFile(personsPath);
+    const persons = JSON.parse(promise);
     const { name, age, talk } = { ...request.body };
     const { watchedAt, rate } = talk;
     const newPerson = { 
-      token,
+      id: persons[persons.length - 1].id + 1,
       name,
       age,
       talk: {
@@ -71,9 +75,27 @@ app.post('/talker', async (request, response) => {
     };
     const talkers = JSON.stringify([...persons, newPerson]);
     await writeFile(personsPath, talkers);
-    } catch (err) {
-    response.status(201).json(newPerson);
-  }
+    return response.status(201).json(newPerson);
+    } catch (err) { response.status(401).send(err); }
+});
+
+app.put('/talker/:id', 
+  validationToken, 
+  validationName, validationAge, validationTalk, validationWatchedAt, validationRate,
+ async (request, response) => {
+  try {
+ const { id } = request.params;
+ const { name, age, talk } = request.body;
+ const promise = await readFile(personsPath);
+ const talkers = JSON.parse(promise);
+ const index = talkers.findIndex((persons) => persons.id === Number(id));
+ talkers[index] = { id: Number(id), name, age, talk };
+ const updatedTalkers = JSON.stringify([...talkers, index]);
+ await writeFile(personsPath, updatedTalkers);
+ return response.status(200).json(talkers[index]);
+ } catch (err) {
+   response.status(400).send({ message: err.message }); 
+ }
 });
 
 app.listen(PORT, () => {
