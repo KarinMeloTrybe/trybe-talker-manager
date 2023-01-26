@@ -20,26 +20,15 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-app.get('/talker/search?q=searchTerm', validationToken, async (request, response) => {
+app.get('/talker/search', validationToken, async (request, response) => {
   try {
-    // const { searchTerm } = request.params;
-    const { id } = request.params;
-    // const promise = await readFile(personsPath.searchTerm); // ou includes? ou personsPath === personsPath.params ?
-    // const persons = JSON.parse(promise);
-    const { name, age, talk } = { ...request.body };
-    const { watchedAt, rate } = talk;
-    const searchedPerson = { 
-      id,
-      name,
-      age,
-      talk: {
-        watchedAt,
-        rate,
-      },
-    };
-    return response.status(200).json(searchedPerson);
-   } catch (err) { response.status(200).json(); }
- });
+    const { q } = request.query;
+    const promise = await readFile(personsPath); 
+    const persons = JSON.parse(promise);
+    const findPerson = persons.filter((person) => person.name.includes(q));
+    return response.status(200).json(findPerson);
+    } catch (err) { response.status(200).json(); }
+});
 
 app.get('/talker', async (_request, response) => {
   const talkersData = await getData();
