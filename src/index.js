@@ -20,6 +20,27 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
+app.get('/talker/search?q=searchTerm', validationToken, async (request, response) => {
+  try {
+    const { searchTerm } = request.params;
+    const { id } = request.params;
+    const promise = await readFile(personsPath.searchTerm); // ou includes? ou personsPath === personsPath.params ?
+    const persons = JSON.parse(promise);
+    const { name, age, talk } = { ...request.body };
+    const { watchedAt, rate } = talk;
+    const searchedPerson = { 
+      id,
+      name,
+      age,
+      talk: {
+        watchedAt,
+        rate,
+      },
+    };
+    return response.status(200).json(searchedPerson);
+   } catch (err) { response.status(200).json({ talker }); }
+ });
+
 app.get('/talker', async (_request, response) => {
   const talkersData = await getData();
   response.status(HTTP_OK_STATUS).json(talkersData);
@@ -96,6 +117,16 @@ app.put('/talker/:id',
  } catch (err) {
    response.status(400).send({ message: err.message }); 
  }
+});
+
+app.delete('/talker/:id', validationToken, async (request, response) => {
+  const { id } = request.params;
+  const promise = await readFile(personsPath);
+  const talkers = JSON.parse(promise);
+  const filterPersons = talkers.filter((persons) => persons.id !== Number(id));
+  const updatedTalkers = JSON.stringify(filterPersons);
+  await writeFile(personsPath, updatedTalkers);
+  return response.status(204).end();
 });
 
 app.listen(PORT, () => {
